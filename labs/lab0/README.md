@@ -11,7 +11,7 @@ make
 ./device−query
 ```
 
-##Output:
+## Output:
 
 The program was run on the UMN GPU lab machine #06. The result was the following output:
 
