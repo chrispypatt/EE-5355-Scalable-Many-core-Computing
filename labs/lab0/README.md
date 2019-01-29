@@ -11,10 +11,11 @@ make
 ./device−query
 ```
 
-##Output
+##Output:
+
 The program was run on the UMN GPU lab machine #06. The result was the following output:
 
-'''
+```
 There are 3 devices supporting CUDA
 
 Device 0: "GeForce GTX 1080"
@@ -72,4 +73,4 @@ Device 2: "GeForce GTX 480"
   Concurrent copy and execution:                 Yes
 
 TEST PASSED
-'''
+```
