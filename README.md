@@ -2,7 +2,7 @@
 
 -Labs 
 - [x] Lab 0 - Environment Setup
-- [ ] Lab 1 - Scatter-to-Gather Transformation
+- [x] Lab 1 - Scatter-to-Gather Transformation
 
 -Final Project
 - [ ] TBD
