@@ -9,7 +9,7 @@ Gather, on the other hand, assigns one thread to each output element which itera
 ## Running code:
 ```
 make
-./s2g <m>			# Mode : m,  Input :  4 ,096 ,  Output :  4 ,096
+./s2g <m>		# Mode : m,  Input :  4 ,096 ,  Output :  4 ,096
 ./s2g <m> <M>		# Mode : m,  Input :M,  Output :M
 ./s2g <m> <M> <N>	# Mode : m,  Input :M,  Output :N
 ```
