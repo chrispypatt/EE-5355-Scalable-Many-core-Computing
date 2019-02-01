@@ -1,4 +1,4 @@
-# Lab 0:
+# Lab 1: Scatter-to-Gather Transformation
 
 The purpose of this lab is to understand scatter-to-gather transformation in thecontext of a simple computation example.
 
