@@ -66,35 +66,25 @@ void s2g_cpu_gather(unsigned int* in, unsigned int* out, unsigned int num_in,
 void s2g_gpu_scatter(unsigned int* in, unsigned int* out, unsigned int num_in,
     unsigned int num_out) {
 
-    // unsigned int* d_in = allocateDeviceArray(in, num_in);
-    // copyToDeviceArray(d_in,in,num_in);
-    // unsigned int* d_out = allocateDeviceArray(out, num_out);
-
+    //set-up space as BLOCK_SIZE=1024 threads per block 
+    //and enough blocks to cover input space
     dim3 dimGrid(ceil(double(num_in)/double(BLOCK_SIZE)),1,1);
     dim3 dimBlock(BLOCK_SIZE,1,1);
 
+    //run the scatter kernel
     s2g_gpu_scatter_kernel<<<dimGrid, dimBlock>>>(in,out,num_in,num_out);
-
-    // copyFromDeviceArray(out,d_out, num_out);
-    // cudaFree(&d_in);
-    // cudaFree(&d_out);
 }
 
 void s2g_gpu_gather(unsigned int* in, unsigned int* out, unsigned int num_in,
     unsigned int num_out) {
 
-    // unsigned int* d_in = allocateDeviceArray(in, num_in);
-    // copyToDeviceArray(d_in,in,num_in);
-    // unsigned int* d_out = allocateDeviceArray(out, num_out);
-
+    //set-up space as BLOCK_SIZE=1024 threads per block 
+    //and enough blocks to cover output space
     dim3 dimGrid(ceil(double(num_out)/double(BLOCK_SIZE)),1,1);
     dim3 dimBlock(BLOCK_SIZE,1,1);
 
+    //run the gather kernel
     s2g_gpu_gather_kernel<<<dimGrid, dimBlock>>>(in,out,num_in,num_out);
-
-    // copyFromDeviceArray(out,d_out, num_out);
-    // cudaFree(&d_in);
-    // cudaFree(&d_out);
 }
 
 

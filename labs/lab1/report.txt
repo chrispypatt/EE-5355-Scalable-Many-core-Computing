@@ -1,0 +1,73 @@
+Lab Report 1
+Christopher Patterson
+1/1/19
+
+
+DATA:
+
+Below are just the kernel execution times for each computation pattern.
+
+Modes @ input size = 4096 | output size = 4096:
+- 1 (CPU Scatter): 0.115627 s
+- 2 (CPU Gather): 0.115492 s
+- 3 (GPU Scatter): 0.004376 s
+- 4 (GPU Gather): 0.001128 s
+
+Modes @ input size = 1000000 | output size = 4096:
+- 1 (CPU Scatter): 28.251139 s
+- 2 (CPU Gather):  28.450750 s
+- 3 (GPU Scatter): 0.308622 s
+- 4 (GPU Gather):  0.274912 s
+
+Modes @ input size = 4096 | output size = 1000000:
+- 1 (CPU Scatter): 28.368822 s
+- 2 (CPU Gather): 28.193960 s
+- 3 (GPU Scatter): 0.283202 s
+- 4 (GPU Gather): 0.078519 s
+
+Modes @ input size = 100000 | output size = 100000: (*note: attempted to do 1milx1mil
+but was going to take too long on CPU)
+- 1 (CPU Scatter): 69.048180 s
+- 2 (CPU Gather): 69.009079 s
+- 3 (GPU Scatter): 0.445995 s
+- 4 (GPU Gather): 0.257394 s
+
+Modes @ input size = 256 | output size = 256:
+- 1 (CPU Scatter): 0.000450  s
+- 2 (CPU Gather): 0.000458 s
+- 3 (GPU Scatter): 0.000115 s
+- 4 (GPU Gather): 0.000136 s
+
+ANALYSIS:
+
+We can see some general patterns between the different vector sizes and runtime. 
+
+*Note: Both GPU versions incur device setup and data copy penalties. They are not 
+mentioned in the analysis below as they don't change much between runs but the larger the
+input and output sizes, the better the performance compared to CPU versions as the 1.5s
+slowdown become negligible comapred to CPU runtime.
+
+First that for all the runs where input or output size or both were large, the 
+gather GPU implementation was faster than scatter GPU. This can likely be attributed 
+to necessity of atomic add operations in the scatter GPU version. As each thread has 
+to make more and more atomic writes to the output, contention grows and we end up
+with much more serialization of operations. It is interesting how for a larger input
+and small output, scatter and gather GPU versions are much more similar in runtime
+compared to when output size is large and input is either small or large. This suggests
+there is an inflexion point of input to output size ratios where reuse in scatter is enough 
+to overcome the disadvantage of atomic add serialization because gather has so much more 
+computations to make. 
+
+This behavior seems to be related to when both input and output sizes
+are small. This is likely because for small vector sizes, the amount of time wasted
+with atomic adds in scatter is less than the time to perform outInvariant for every
+combination of inIdx and outIdx in gather. In scatter, this outInvariant result is reused for
+the inner loop but that is not possible for gather.
+
+The CPU version of gather and scatter both consistently ran longer than both GPU versions. 
+At small input sizes they both ran with negligible difference. The interesting cases for these
+runs were when either input size was large or output size was large. When input is large but 
+output is small, scatter ran slightly faster than gather. If the run is opposite, input is
+small but output is large, gather runs slightly faster. This confirms our initial ideas
+that scatter is best when the output is smaller than a very large input because the lack
+of gather calculation reuse ends up slowing the implementation down. 

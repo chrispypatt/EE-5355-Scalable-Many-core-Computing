@@ -24,9 +24,6 @@ void verify(unsigned int* in, unsigned int* out, unsigned int num_in, unsigned i
 void startTime(Timer* timer);
 void stopTime(Timer* timer);
 float elapsedTime(Timer timer);
-void copyToDeviceArray(unsigned int* d_data, const unsigned int*  h_data, int num_elements);
-void copyFromDeviceArray(unsigned int* h_data, const unsigned int*  d_data, int num_elements);
-unsigned int* allocateDeviceArray(unsigned int* data, int num_elements);
 
 __host__ __device__ unsigned int outInvariant(unsigned int inValue);
 __host__ __device__ unsigned int outDependent(unsigned int value, unsigned int inIdx,

@@ -83,30 +83,4 @@ __host__ __device__ unsigned int outDependent(unsigned int value, unsigned int i
     }
 }
 
-// Allocate a device array of same size as data.
-unsigned int* allocateDeviceArray(unsigned int* data, int num_elements){
-	int size = num_elements * sizeof(unsigned int);
-	unsigned int* d_data = data;
-	cudaError_t cuda_ret = cudaMalloc((void**) &d_data, size);
-	if(cuda_ret != cudaSuccess) {
-		printf("Unable to allocate device memory");
-		exit(0);
-	}
-	return d_data;
-}
-
-// Copy a host array to a device array.
-void copyToDeviceArray(unsigned int* d_data, const unsigned int*  h_data, int num_elements)
-{
-    int size = num_elements * sizeof(unsigned int);
-    cudaMemcpy(d_data, h_data, size, cudaMemcpyHostToDevice);
-}
-
-// Copy a device array to a host array.
-void copyFromDeviceArray(unsigned int* h_data, const unsigned int*  d_data, int num_elements)
-{
-    int size = num_elements * sizeof(unsigned int);
-    cudaMemcpy(h_data, d_data, size, cudaMemcpyDeviceToHost);
-
-}
 
