@@ -3,7 +3,7 @@
 -Labs 
 - [x] Lab 0 - Environment Setup
 - [x] Lab 1 - Scatter-to-Gather Transformation
-- [ ] Lab 2 - 7-point Stencil with Thread-coarsening and Register Tiling
+- [x] Lab 2 - 7-point Stencil with Thread-coarsening and Register Tiling
 - [ ] Lab 3 - Matrix Multiplication with Thread Coarsening and Register Tiling
 
 -Final Project
