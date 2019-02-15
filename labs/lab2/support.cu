@@ -29,9 +29,9 @@ void verify(int *A0, int *Anext, unsigned int nx, unsigned int ny,
           + A0(i + 1, j    , k    )
           + A0(i - 1, j    , k    )
           - 6*A0(i    , j    , k    );
-        if (result != Anext(i, j, k)) {
-            printf("TEST FAILED at (%d, %d, %d): GPU = %d, CPU = %d\n\n", i, j, k, Anext(i, j, k), result);
-            exit(0);
+        if (result != Anext(i, j, k) ) {
+          printf("TEST FAILED at (%d, %d, %d): GPU = %d, CPU = %d\n\n", i, j, k, Anext(i, j, k), result);
+          exit(0);
         }
       }
     }

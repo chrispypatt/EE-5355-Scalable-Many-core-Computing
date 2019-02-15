@@ -5,7 +5,47 @@ Briefly describe your implementation in one or two paragraphs as well as any
 difficulties you faced in developing and optimizing the kernel.
 
 ANSWER:
+My implememntation follows a similar style as the slides on 7-point stenciling
+with coarsening and register tiling. Each thread essentially computes the output
+along one column of the z-axis. To get reuse for this traveling up the grid, each
+thread stores the first three elements of its column and then shifts those values 
+down for the next column, reusing each inner value as a top, middle, and bottom 
+value of Anext. 
 
+I also implemented shared memory tiling. Each tile is a 30x30 
+thread block so my shared memory was set as a 30x30 int metrix. Then each thread 
+loads its center value into its threadIdx.x,threadIdx.y location of the matrix.
+From there each thread can access its neighbor's values for i+1,i-1,j+1,j-1. This 
+however, required  boundary checking so threads on the edge of a tile would loaded
+a zero if it was on the edge of A0 or the neighbor value from A0 that the tile 
+does not contain. This shared memory implementation requires all threads to store 
+their middle value into the matrix before calculating Anext and for shifting z-values
+only after all threads have completed their Anext calculation. To do this, I added 
+__syncthreads() calls after each of those steps. 
+
+Optimization was fairly straight forward but I did run into some difficulties along
+the way. Specifically with regards to the boundaries in the Anext calculation. I 
+based my boundaries off of the lecture slides which caused some out of bounds accesses.
+This was specifically for loading j+1 and i+1 from shared memory. The check in the slides
+was that (ty < dy) and (tx < dx) but that caused threads with tx or tx = 29 to 
+try and load index 30 on the row or column axis from shared memory which is out of bounds. 
+To fix this, the new boundary checks were changed to (ty < dy-1) and (tx < dx-1). 
+Another issue whihc has given me sporatic failures was for loading j-1 values. 
+The calculation originally tried was:
+
+	((ty > 0)?  ds_A[ty-1][tx]: (j==0)?  0:A0(i,j-1,k))
+
+which would occasionally load zeros when 1<=i<=27, j==1, k==1. Using cuda-gdb, the 
+program showed the correct values would be loaded to the output calcualtion but then
+after the kernel returned and we verified results, would be off only for the i,j and k
+conditions above. I found that changing the calcualtion to:
+
+	((ty > 0)?  ds_A[ty-1][tx]: A0(i,j-1,k)) 
+
+fixed the sporatic output, resulting in correct, passing results but this logic does not
+seem to handle ty==0, j==0 cases properly when you look at how the kernel should access 
+the arrays for those values. Because the final output was correct after making this change,
+it was left in the final implementation 
 
 
 
@@ -20,7 +60,12 @@ only additions, subtractions, and multiplications that operate directly on the
 loaded data. Do not consider index computations.)
 
 ANSWER:
+Considering the calculation of Anext as our work item, each Anext 
+calculation performs 7 additions and subtractions plus one multiplication. This
+is a total of 8 real computations per work-item. With no tiling or thread-coarsening
+optimizations, this work item would perform 7 gloabl memory loads.
 
+Thus, the ratio of computation to global memory loads is 8/7 = 1.14 loads per computation.
 
 
 

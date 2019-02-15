@@ -24,6 +24,7 @@ void verify(int *A0, int *Anext, unsigned int nx, unsigned int ny,
 void startTime(Timer* timer);
 void stopTime(Timer* timer);
 float elapsedTime(Timer timer);
+
 #ifdef __cplusplus
 }
 #endif
