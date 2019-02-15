@@ -60,14 +60,16 @@ only additions, subtractions, and multiplications that operate directly on the
 loaded data. Do not consider index computations.)
 
 ANSWER:
-Considering the calculation of Anext as our work item, each Anext 
+With a work-item defined as the operation of one thread in our kernel execution,
+considering the calculation of Anext as our real computation, each Anext 
 calculation performs 7 additions and subtractions plus one multiplication. This
-is a total of 8 real computations per work-item. With no tiling or thread-coarsening
-optimizations, this work item would perform 7 gloabl memory loads.
+is a total of 8 real computations per calculation. With no tiling or thread-coarsening
+optimizations, a tread will perform 7 global memory loads per z-axis element. We 
+calculate nz-2 Anext elements per thread (z==1 and z==nz are not computed as they 
+have no bottom or top neighbors respectively). So for this case, we have 48 calculations
+with 8 computations and 7 global memory loads per calculation.
 
-Thus, the ratio of computation to global memory loads is 8/7 = 1.14 loads per computation.
-
-
+Thus, the ratio of computation to global memory loads is (48*8/7*48) = 1.14 loads per work item.
 
 
 QUESTION #3:
@@ -81,6 +83,19 @@ multiplications that operate directly on the loaded data. Do not consider index
 computations.)
 
 ANSWER:
+With optimization, the number of global loads for the z-axis per work-item is ny 
+due to thread-coarsening where the first z calculation loads three elements followed
+by 1 element for the top for 2<=z<=49. Then, because each thread stores its middle value
+the shared memory matrix for each 2-D slice, the rest of the values are loaded from 
+shared memory, not global memory. There are cases in a work group where threads on the
+edge or corner of the tile will have to load between 1 to 2 more global values. These cases
+will just be somewhere between question 2's ratio and the ratio I will calcualte for this problem
+so I wont explicitly calcualate these two case's ratios.
+
+The computations per work item stays the same at 8 computations per Anext element, and 48*8
+compuations per work-item.
+
+Thus the ratio between computation and global loads is (48*8)/50=7.68 loads per work item.
 
 
 
@@ -92,7 +107,13 @@ Briefly comment on the difference in computation to global memory loads ratios
 for the two cases.
 
 ANSWER:
-
-
+We can see clearly that using shared memory tiling and thread coarsening allows us to 
+get much more calculations from each global memory load. This is because of the way we
+define work groups to cover layer of the z-axis at a time. This allows us to load every 
+element we need for three layers at a time, with the middle layer in shared memory.
+This allows for many threads to use the same memory values without the overhead of 
+accessing global memory like we see in problem 2. Problem 2 is inefficent because we can 
+see that every thread loads every computation value by itself but that load overlaps with 
+the need of other thread which we take advantage of in our optimized version.
 
 

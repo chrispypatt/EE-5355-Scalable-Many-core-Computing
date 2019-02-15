@@ -3,7 +3,6 @@ NVCC        = nvcc
 NVCC_FLAGS  = -I/usr/local/cuda/include 
 ifdef dbg
 	NVCC_FLAGS  += 	-g -G
-	# -Xcompiler -rdynamic -lineinfo 
 else
 	NVCC_FLAGS  += -O3
 endif

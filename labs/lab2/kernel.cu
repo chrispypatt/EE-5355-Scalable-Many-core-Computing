@@ -38,14 +38,6 @@ __global__ void kernel(int *A0, int *Anext, int nx, int ny, int nz) {
 			((ty < dy-1)? ds_A[ty+1][tx]: (j==ny-1)? 0: A0(i,j+1,k)) -
 			6 * center;
 
-		// Anext(i,j,k) = ((tx > 0)? ds_A[ty][tx-1]: (i==0)? 0:A0(i-1,j,k));
-		// Anext(i,j,k) = ((tx < dx-1)? ds_A[ty][tx+1]: (i==nx-1)? 0:A0(i+1,j,k));
-		// Anext(i,j,k) = 10*ty+j;//((ty > 0)?  ds_A[ty-1][tx]: (j==0)?  0:A0(i,j-1,k));
-		// Anext(i,j,k) = ((ty < dy-1)? ds_A[ty+1][tx]: (j==ny-1)? 0:A0(i,j+1,k));
-		// Anext(i,j,k) = bottom;
-		// Anext(i,j,k) = top;
-		// Anext(i,j,k) = 6*center;
-
 		//shift z-values
 		bottom = center; center = top;
 		__syncthreads();
