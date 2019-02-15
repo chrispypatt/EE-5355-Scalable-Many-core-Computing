@@ -1,0 +1,12 @@
+
+QUESTION:
+
+Try running all four implementations using varying input combinations. Use at least 5 different combinations. Try scaling the number of input elements and the grid size differently having both low, both high, one low and one high, etc. Comment on the performance impact of each mode for the various input sizes. Explain why you think certain implementations perform better than others for various input combinations. In modes 4 and 5, make sure to also include the preprocessing time in your comparison, not just the kernel launch time.
+
+
+ANSWER:
+
+
+
+
+
