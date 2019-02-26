@@ -17,32 +17,34 @@ __global__ void kernel(int *A0, int *Anext, int nx, int ny, int nz) {
 	int i = tx + dx * blockIdx.x;  
 	int j = ty + dy * blockIdx.y;  
 
-	//Load this thread's top, bottom, and center z values
-	int bottom = A0(i,j,0);
-	int center = A0(i,j,1);
-	int top = A0(i,j,2);
+	if ((i < nx) && (j < ny)){//check we are within bounds
+		//Load this thread's top, bottom, and center z values
+		int bottom = A0(i,j,0);
+		int center = A0(i,j,1);
+		int top = A0(i,j,2);
 
-	//create shared memory tile
-	__shared__ int ds_A[TILE_SIZE][TILE_SIZE];
+		//create shared memory tile
+		__shared__ int ds_A[TILE_SIZE][TILE_SIZE];
 
-	//loop through all z slices
-	for (int k=1; k<nz-1; ++k){
-		//load up current z-axis slice
-		ds_A[ty][tx] = center; 
-		__syncthreads(); //wait for all other threads to do their thing
+		//loop through all z slices
+		for (int k=1; k<nz-1; ++k){
+			//load up current z-axis slice
+			ds_A[ty][tx] = center; 
+			__syncthreads(); //wait for all other threads to do their thing
 
-		Anext(i,j,k) = bottom + top +
-			((tx > 0)?    ds_A[ty][tx-1]: (i==0)?    0: A0(i-1,j,k)) +
-			((tx < dx-1)? ds_A[ty][tx+1]: (i==nx-1)? 0: A0(i+1,j,k)) +
-			((ty > 0)?    ds_A[ty-1][tx]: 				A0(i,j-1,k)) +
-			((ty < dy-1)? ds_A[ty+1][tx]: (j==ny-1)? 0: A0(i,j+1,k)) -
-			6 * center;
+			Anext(i,j,k) = bottom + top +
+				((tx > 0)?    ds_A[ty][tx-1]: (i==0)?    0: A0(i-1,j,k)) +
+				((tx < dx-1)? ds_A[ty][tx+1]: (i==nx-1)? 0: A0(i+1,j,k)) +
+				((ty > 0)?    ds_A[ty-1][tx]: 	(j==0)? 0:			A0(i,j-1,k)) +
+				((ty < dy-1)? ds_A[ty+1][tx]: (j==ny-1)? 0: A0(i,j+1,k)) -
+				6 * center;
 
-		//shift z-values
-		bottom = center; center = top;
-		__syncthreads();
-		//load new top value
-		top = A0(i,j,k+2);
+			//shift z-values
+			bottom = center; center = top;
+			__syncthreads();
+			//load new top value
+			top = A0(i,j,k+2);
+		}
 	}
 	#undef A0
 	#undef Anext

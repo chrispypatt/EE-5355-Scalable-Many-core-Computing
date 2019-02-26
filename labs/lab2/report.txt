@@ -38,16 +38,13 @@ The calculation originally tried was:
 which would occasionally load zeros when 1<=i<=27, j==1, k==1. Using cuda-gdb, the 
 program showed the correct values would be loaded to the output calcualtion but then
 after the kernel returned and we verified results, would be off only for the i,j and k
-conditions above. I found that changing the calcualtion to:
+conditions above. I found that this issue was simply because I forgot to check if my i 
+and j were within bounds, nx and ny, of the A0 array. This caused memory issues, resulting
+in data being corrupted. To fix this, I added the check:
 
-	((ty > 0)?  ds_A[ty-1][tx]: A0(i,j-1,k)) 
+	if ((i < nx) && (j < ny)){
 
-fixed the sporatic output, resulting in correct, passing results but this logic does not
-seem to handle ty==0, j==0 cases properly when you look at how the kernel should access 
-the arrays for those values. Because the final output was correct after making this change,
-it was left in the final implementation 
-
-
+right after calculting the tread indicies at the beginning of the kernel.
 
 
 QUESTION #2:

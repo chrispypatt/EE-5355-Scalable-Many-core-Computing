@@ -29,27 +29,6 @@ __global__ void mysgemm(int m, int n, int k, const float *A, const float *B, flo
     #define C(row,col) C[(row) + (col)*m]
 
     // INSERT KERNEL CODE HERE
-
- 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }
 
 void basicSgemm(char transa, char transb, int m, int n, int k, float alpha, const float *A, int lda, const float *B, int ldb, float beta, float *C, int ldc)
