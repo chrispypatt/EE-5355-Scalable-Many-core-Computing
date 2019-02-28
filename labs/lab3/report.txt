@@ -7,6 +7,40 @@ each of the input and output tiles. Show your work.
 
 ANSWER:
 
+With an output tile of size (M rows)x(N columns), our k steps each thread performs
+is: k = (M/N). This calculation will be useful for determing the sizes of memory we need.
+
+If the output tile is (M rows)x(N columns), our tile will setup shared memory 
+of size:
+
+	(k rows)x(N columns) = (M/N rows)x(N columns) = M shared memory
+
+to hold the tiled input of matrix B that each thread helps load. The data from 
+matrix A is tiled in per thread registers. Each thread of the tile loads one
+at a time so at any given time we need. We have M threads working per tile 
+based on the calculation:
+
+	# threads = (Nxk) = (Nx(M/N)) = M threads => need M registers
+
+thus, we need M registers at any time to hold the input data from matrix A.
+
+Lastly, the calculation performed by each thread in the tile computes one 
+row of the output matrix. This is stored in register memory until we copy 
+it back out to the output matrix C. Thus each thread must have N registers
+to hold the multiplication row. We know there are M threads in the tile. Thus
+we need: 
+
+	MxN registers (This was actually given in the problem statement but is nice to do sanity check)
+
+to hold all M thread's output row values. 
+
+Thus each tile needs:
+	shared memory = M 
+	register memory = M + MxN = M(1+N) 
+
+or in bytes, assuming single precision floats (32 bits or 4 bytes):
+	shared memory = M x 4 bytes of shared memory
+	register memory = M(1+N) x 4 bytes of register memory
 
 
 
@@ -20,6 +54,114 @@ difference (or lack of difference) in performance when the tile sizes change.
 
 ANSWER
 
+All my tests were run for default matrix sizes (1kx1k) for easy comparison.
+
+Below you can see the test results from three different tile width of matrix B. 
+From the execution times collects, we can clearly determine that a large TILE_WIDTH_B
+hinders performance greatly. There is actually a general trend that as TILE_WIDTH_B increases
+performance drops. This is likely because increasing TILE_WIDTH_B for the same TILE_WIDTH_A
+will result in the same shared memory size for both but now each thread requires more and more 
+registers, causing occupancy to decrease.  
+
+As for the other cases, we can see that generally increasing TILE_WIDTH_A 
+results in better performance. I belive this is because increasing TILE_WIDTH_A
+results in loading more values into shared memory so we can perform more calculations
+per syncronization call. This is apparent in both TILE_WIDTH_B = 4, 16 and 32 cases when
+we look at the difference in execution times between TILE_WIDTH_A=TILE_WIDTH_B and 
+TILE_WIDTH_A>4xTILE_WIDTH_B. When TILE_WIDTH_A=TILE_WIDTH_B, there is less reuse 
+and less computation done per outer loop because we load in fewer rows of matrix B at a time. 
+
+Based off my results, I can see however that there is an inflection point where further 
+increases of TILE_WIDTH_A result in slightly less performance than before. This point 
+for TILE_WIDTH_B=16 is between when TILE_WIDTH_A=256 and 1024. This may be due to occupancy due to
+high usage of shared memory.
+
+
+TILE_WIDTH_B=4:
+	Test1:
+		tile sizes:
+			TILE_WIDTH_A=1024
+			TILE_K=256
+		execution time: 0.004351 s
+	Test2:
+		tile sizes:
+			TILE_WIDTH_A=256
+			TILE_K=64
+		execution time: 0.004084 s
+	Test3:
+		tile sizes:
+			TILE_WIDTH_A=64
+			TILE_K=16
+		execution time: 0.004551 s
+	Test4:
+		tile sizes:
+			TILE_WIDTH_A=4
+			TILE_K=1
+		execution time: 0.203279 s
+
+TILE_WIDTH_B=16:
+	Test1:
+		tile sizes:
+			TILE_WIDTH_A=1024
+			TILE_K=64
+		execution time: 0.010916 s
+	Test2:
+		tile sizes:
+			TILE_WIDTH_A=256
+			TILE_K=16
+		execution time: 0.010482 s
+	Test3:
+		tile sizes:
+			TILE_WIDTH_A=64
+			TILE_K=4
+		execution time: 0.012780 s
+	Test4:
+		tile sizes:
+			TILE_WIDTH_A=16
+			TILE_K=1
+		execution time: 0.066600 s
+
+TILE_WIDTH_B=32:
+	Test1:
+		tile sizes:
+			TILE_WIDTH_A=1024
+			TILE_K=32
+		execution time: 0.021159 s
+	Test2:
+		tile sizes:
+			TILE_WIDTH_A=256
+			TILE_K=8
+		execution time: 0.020043 s
+	Test3:
+		tile sizes:
+			TILE_WIDTH_A=64
+			TILE_K=2
+		execution time: 0.025817 s
+	Test4:
+		tile sizes:
+			TILE_WIDTH_A=32
+			TILE_K=1
+		execution time: 0.037118 s
+
+TILE_WIDTH_B=128:
+	Test1:
+		tile sizes:
+			TILE_WIDTH_A=1024
+			TILE_K=8
+		execution time: 4.755835 s
+	Test2:
+		tile sizes:
+			TILE_WIDTH_A=256
+			TILE_K=2
+		execution time: 4.852683 s
+	Test3:
+		tile sizes:
+			TILE_WIDTH_A=128
+			TILE_K=1
+		execution time: 4.780239 s
+
+
+	
 
 
 

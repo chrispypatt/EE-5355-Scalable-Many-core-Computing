@@ -7,9 +7,9 @@
  ******************************************************************************/
 
 #include <stdio.h>
-#define TILE_WIDTH_A 128
+#define TILE_WIDTH_A 256
 #define TILE_WIDTH_B 16
-#define TILE_HEIGHT_B (TILE_WIDTH_A/TILE_WIDTH_B)
+#define TILE_K (TILE_WIDTH_A/TILE_WIDTH_B)
 
 __global__ void mysgemm(int m, int n, int k, const float *A, const float *B, float* C) {
 
@@ -32,7 +32,7 @@ __global__ void mysgemm(int m, int n, int k, const float *A, const float *B, flo
     #define C(row,col) C[(row) + (col)*m]
 
     //tiling for B and output C
-    __shared__ float shared_B[TILE_HEIGHT_B][TILE_WIDTH_B];
+    __shared__ float shared_B[TILE_K][TILE_WIDTH_B];
     float C_RT[TILE_WIDTH_B];
 
     for(int i = 0; i<TILE_WIDTH_B;i++) C_RT[i] = 0.0;
@@ -45,18 +45,18 @@ __global__ void mysgemm(int m, int n, int k, const float *A, const float *B, flo
 
     int p_col_offset = bx * TILE_WIDTH_B;
 
-    for (int i = 0; i < ceil(double(k)/double(TILE_HEIGHT_B)); i++){//loop through all k tiles
+    for (int i = 0; i < ceil(double(k)/double(TILE_K)); i++){//loop through all k tiles
         //each thread load in an element of B Tile
-        int b_row = i * TILE_HEIGHT_B + ty;
+        int b_row = i * TILE_K + ty;
         if (b_row < k && b_col < n){
             shared_B[ty][tx] = B(b_row,b_col);
         }else{
             shared_B[ty][tx] = 0;
         }
         __syncthreads();//wait for threads to load into shared mem
-        for (int j = 0; j < TILE_HEIGHT_B; j++){ 
+        for (int j = 0; j < TILE_K; j++){ 
             float a = 0;
-            int a_col = i * TILE_HEIGHT_B + j;
+            int a_col = i * TILE_K + j;
             if (a_col < k && a_row < m){
                 a = A(a_row,a_col);
             }
@@ -96,8 +96,8 @@ void basicSgemm(char transa, char transb, int m, int n, int k, float alpha, cons
     }
 
     // Initialize thread block and kernel grid dimensions ---------------------
-    dim3 dimGrid(ceil(double(n)/double(TILE_WIDTH_B)),ceil(double(m)/double(TILE_HEIGHT_B)),1);
-    dim3 dimBlock(TILE_WIDTH_B,TILE_HEIGHT_B,1);
+    dim3 dimGrid(ceil(double(n)/double(TILE_WIDTH_B)),ceil(double(m)/double(TILE_K)),1);
+    dim3 dimBlock(TILE_WIDTH_B,TILE_K,1);
 
     // Invoke CUDA kernel -----------------------------------------------------
     mysgemm<<<dimGrid, dimBlock>>>(m,n,k,A,B,C);
