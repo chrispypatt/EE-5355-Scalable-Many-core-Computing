@@ -7,6 +7,9 @@
  ******************************************************************************/
 
 #include <stdio.h>
+#define TILE_WIDTH_A 128
+#define TILE_WIDTH_B 16
+#define TILE_HEIGHT_B (TILE_WIDTH_A/TILE_WIDTH_B)
 
 __global__ void mysgemm(int m, int n, int k, const float *A, const float *B, float* C) {
 
@@ -23,12 +26,51 @@ __global__ void mysgemm(int m, int n, int k, const float *A, const float *B, flo
      *
      ********************************************************************/
 
-   // Macros for accessing flattened matrices
+    // Macros for accessing flattened matrices
     #define A(row,col) A[(row) + (col)*m]
     #define B(row,col) B[(row)*n + (col)]
     #define C(row,col) C[(row) + (col)*m]
 
-    // INSERT KERNEL CODE HERE
+    //tiling for B and output C
+    __shared__ float shared_B[TILE_HEIGHT_B][TILE_WIDTH_B];
+    float C_RT[TILE_WIDTH_B];
+
+    for(int i = 0; i<TILE_WIDTH_B;i++) C_RT[i] = 0.0;
+
+    //Get block and thread idxs to load in tiles
+    int by = blockIdx.y, bx = blockIdx.x, tx = threadIdx.x, ty = threadIdx.y;
+
+    int b_col = tx + bx * TILE_WIDTH_B;
+    int a_row = tx + ty * TILE_WIDTH_B + by * TILE_WIDTH_A;
+
+    int p_col_offset = bx * TILE_WIDTH_B;
+
+    for (int i = 0; i < ceil(double(k)/double(TILE_HEIGHT_B)); i++){//loop through all k tiles
+        //each thread load in an element of B Tile
+        int b_row = i * TILE_HEIGHT_B + ty;
+        if (b_row < k && b_col < n){
+            shared_B[ty][tx] = B(b_row,b_col);
+        }else{
+            shared_B[ty][tx] = 0;
+        }
+        __syncthreads();//wait for threads to load into shared mem
+        for (int j = 0; j < TILE_HEIGHT_B; j++){ 
+            float a = 0;
+            int a_col = i * TILE_HEIGHT_B + j;
+            if (a_col < k && a_row < m){
+                a = A(a_row,a_col);
+            }
+            for (int l = 0; l < TILE_WIDTH_B; l++){//compute partial multiplication
+                C_RT[l] += a*shared_B[j][l];
+            }
+        }
+        __syncthreads();//wait for all threads to perform computations from b
+    }
+    for (int i = 0; i < TILE_WIDTH_B; i++) {
+        if (a_row < m && i+p_col_offset < n){
+            C(a_row,i+p_col_offset) = C_RT[i];
+        }
+    }
 }
 
 void basicSgemm(char transa, char transb, int m, int n, int k, float alpha, const float *A, int lda, const float *B, int ldb, float beta, float *C, int ldc)
@@ -54,18 +96,11 @@ void basicSgemm(char transa, char transb, int m, int n, int k, float alpha, cons
     }
 
     // Initialize thread block and kernel grid dimensions ---------------------
-
-    //INSERT CODE HERE
-
-
-
+    dim3 dimGrid(ceil(double(n)/double(TILE_WIDTH_B)),ceil(double(m)/double(TILE_HEIGHT_B)),1);
+    dim3 dimBlock(TILE_WIDTH_B,TILE_HEIGHT_B,1);
 
     // Invoke CUDA kernel -----------------------------------------------------
-
-    //INSERT CODE HERE
-
-
-
+    mysgemm<<<dimGrid, dimBlock>>>(m,n,k,A,B,C);
 }
 
 

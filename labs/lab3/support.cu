@@ -26,6 +26,8 @@ void verify(float *A, float *B, float *C, unsigned int m, unsigned int k,
       float relativeError = (sum - C[row + col*m])/sum;
       if (relativeError > relativeTolerance
         || relativeError < -relativeTolerance) {
+          // printf("CPU: %f GPU: %f, row = %d col = %d\n", sum, C[row + col*m], row, col);
+
         printf("TEST FAILED\n\n");
         exit(0);
       }
