@@ -1,6 +1,13 @@
 
 NVCC        = nvcc
 NVCC_FLAGS  = -O3 -I/usr/local/cuda/include -arch=sm_20
+# NVCC        = nvcc 
+# NVCC_FLAGS  = -I/usr/local/cuda/include 
+# ifdef dbg
+# 	NVCC_FLAGS  += 	-g -G
+# else
+# 	NVCC_FLAGS  += -O3
+# endif
 LD_FLAGS    = -lcudart -L/usr/local/cuda/lib64
 EXE	        = binning
 OBJ	        = main.o support.o

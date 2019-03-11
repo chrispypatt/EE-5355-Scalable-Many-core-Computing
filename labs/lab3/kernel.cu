@@ -41,7 +41,9 @@ __global__ void mysgemm(int m, int n, int k, const float *A, const float *B, flo
     int by = blockIdx.y, bx = blockIdx.x, tx = threadIdx.x, ty = threadIdx.y;
 
     int b_col = tx + bx * TILE_WIDTH_B;
-    int a_row = tx + ty * TILE_WIDTH_B + by * TILE_WIDTH_A;
+    // For every block y, ty ranges from 0-TILE_K. TILE_WIDTH_B*TILE_K = TILE_WIDTH_A
+    // So every by should add TILE_WIDTH_A
+    int a_row = tx + ty * TILE_WIDTH_B + by * TILE_WIDTH_A; 
 
     int p_col_offset = bx * TILE_WIDTH_B;
 
