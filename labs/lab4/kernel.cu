@@ -201,8 +201,8 @@ __global__ void sort(float* in_val, float* in_pos, float* in_val_sorted,
     unsigned int* binCounts, unsigned int* binPtrs) {
     // INSERT KERNEL CODE HERE
     unsigned int inIdx = threadIdx.x + blockIdx.x * blockDim.x;
-    unsigned int stride = blockDim.x * gridDim.x;
-    while(inIdx < num_in){
+    unsigned int stride = blockDim.x * gridDim.x; 
+    while (inIdx < num_in){
         const unsigned int binIdx = (unsigned int) ((in_pos[inIdx]/grid_size)*NUM_BINS);
         const unsigned int newIdx = binPtrs[binIdx + 1] - atomicSub(&binCounts[binIdx],1);
         in_val_sorted[newIdx] = in_val[inIdx];
