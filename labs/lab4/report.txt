@@ -6,6 +6,33 @@ Try running all four implementations using varying input combinations. Use at le
 
 ANSWER:
 
+	The performance of each mode for five different input sizes are shown below. the CPU version in mode 1 is consistently much
+slower than any GPU version which is expected since we don't exploit any parallelism for mode 1. Looking at the GPU versions,
+mode 4 and 5 are faster than 2 and 3 when both grid and input are medium sized. As these two input values increase, the performance 
+gap increases as well. this is likely due to the fact that larger INPUT yields more optimization through the preprocessing. The preprocessing
+for large INPUT values results in less cutoff boundary checks because we can eliminate entire bins from consideration with a simple 
+check instead of checking every input to decide if we perform the calculation like in mode 3 or worse, doing the calculation for each input
+at every output. Clearly larger INPUT sizes yield better performance when binning and using the GPU for this task is generally better.
+
+	The only time where binning on the GPU is not better than on the CPU for this task is when GRID is large but INPUT is small. This does not 
+sound intuitive at first but indicates that when the input size is small, the overhead of actually launching three kernels to perform binning, scan,
+and sort is greater than the speed the CPU can run to sequentially preprocess. The time spent launching kernels in this case is not worth it when
+the CPU can just go off and perform the preprocessing quickly. 
+
+	Now looking at when both GRID and INPUT are low as well as GRID high INPUT low, we can see that the preprocessing modes were slower
+than the normal and cutoff kernels. This is because there is a lot of overhead in preprocessing to perform binning, scan, and sorting. This 
+result tells us that when the input size is small, the computation time to just compute the impact of each input on the grid points is small 
+compared to the time it takes to launch the supporting preprocessing kernels (or sequentially preprocess in the case of mode 4). So for low 
+input sizes it would be better to forgo preprocessing since it has a negative impact on performance.
+
+	Mode 3 was slightly faster for low INPUT, high GRID than mode 2 which makes since because there are many grid points that can avoid computing
+the effect of every input doing the cutoff check. This can also be seen when both GRID and INPUT are set high where mode 3 is almost twice as fast 
+as mode two. The cutoff check is faster than the computation so using this check to cut down on impact computations helps when there are a lot of points
+that may not have an impact on grid points. When both INPUT and GRID are low however, mode 2 is actually faster than mode three. This is likely because
+many of the inputs have an impact on the grid points so adding the extra distance check adds a little bit of overhead to the computation. A similar 
+effect can be seen when we set our inputs as GRID: 1,000, INPUT: 100,000, supporting this idea. 
+
+
 
 DEFAULT (GRID: 20,000, INPUT: 60,000): 
 	mode 1:
@@ -17,9 +44,11 @@ DEFAULT (GRID: 20,000, INPUT: 60,000):
 	mode 4:
 		Preprocessing data on the CPU...0.001912 s
 		Launching kernel (GPU with input binning and cutoff)...0.008004 s
+		Total: 0.009916 s
 	mode 5:
 		Preprocessing data on the GPU...0.000096 s
 		Launching kernel (GPU with input binning and cutoff)...0.007960 s
+		Total: 0.008056 s
 
 BOTH LOW (GRID: 1,000, INPUT: 1,000):
 	mode 1:
@@ -31,9 +60,12 @@ BOTH LOW (GRID: 1,000, INPUT: 1,000):
 	mode 4:
 		Preprocessing data on the CPU...0.000041 s
 		Launching kernel (GPU with input binning and cutoff)...0.000832 s
+		Total: 0.000873 s
 	mode 5:
 		Preprocessing data on the GPU...0.000096 s
 		Launching kernel (GPU with input binning and cutoff)...0.000782 s
+		Total: 0.000878 s
+
 
 BOTH HIGH (GRID: 100,000, INPUT: 100,000): 
 	mode 1:
@@ -45,9 +77,11 @@ BOTH HIGH (GRID: 100,000, INPUT: 100,000):
 	mode 4:
 		Preprocessing data on the CPU...0.003199 s
 		Launching kernel (GPU with input binning and cutoff)...0.009930 s
+		Total: 0.013129 s
 	mode 5:
 		Preprocessing data on the GPU...0.000109 s
 		Launching kernel (GPU with input binning and cutoff)...0.009834 s
+		Total: 0.009943 s
 
 GRID LOW INPUT HIGH (GRID: 1,000, INPUT: 100,000):
 	mode 1:
@@ -59,9 +93,11 @@ GRID LOW INPUT HIGH (GRID: 1,000, INPUT: 100,000):
 	mode 4:
 		Preprocessing data on the CPU...0.003140 s
 		Launching kernel (GPU with input binning and cutoff)...0.041257 s
+		Total: 0.044397 s
 	mode 5: 
 		Preprocessing data on the GPU...0.000134 s
 		Launching kernel (GPU with input binning and cutoff)...0.041196 s
+		Total: 0.04133 s
 
 GRID HIGH INPUT LOW (GRID: 100,000, INPUT: 1,000):
 	mode 1:
@@ -73,9 +109,11 @@ GRID HIGH INPUT LOW (GRID: 100,000, INPUT: 1,000):
 	mode 4:
 		Preprocessing data on the CPU...0.000075 s
 		Launching kernel (GPU with input binning and cutoff)...0.002534 s
+		Total: 0.002609 s
 	mode 5:
 		Preprocessing data on the GPU...0.000079 s
 		Launching kernel (GPU with input binning and cutoff)...0.002620 s
+		Total: 0.002699 s
 
 *One thing to note, when running my code for GRID=100,000, INPUT 1,000, the 
 verification process would say the test failed although the reference and computed 
