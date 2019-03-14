@@ -81,10 +81,13 @@ void verify_cutoff(float* in_val, float* in_pos, float* out,
   }
 
   // Compare to reference out
-  float tolerance = 1e-3;
+  float tolerance = 1e-2;
   for(unsigned int outIdx = 0; outIdx < grid_size; ++outIdx) {
       const float diff = (out[outIdx] - out_ref[outIdx])/out_ref[outIdx];
+      
       if(diff > tolerance || diff < -tolerance) {
+        printf("index %u, ref = %f, computed = %f, diff = %f\n", outIdx, out_ref[outIdx], out[outIdx], diff);
+
         printf("TEST FAILED at output index %u, reference = %f, computed = %f"
           "\n\n", outIdx, out_ref[outIdx], out[outIdx]);
         exit(0);

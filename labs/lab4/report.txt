@@ -119,3 +119,5 @@ GRID HIGH INPUT LOW (GRID: 100,000, INPUT: 1,000):
 verification process would say the test failed although the reference and computed 
 values matched for mode 4 and 5:
 	e.g. Verifying results...TEST FAILED at output index 49031, reference = 0.000050, computed = 0.000050
+
+This has been identified as a floating point error issue in the verification function.
