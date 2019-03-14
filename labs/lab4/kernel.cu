@@ -148,7 +148,7 @@ __global__ void histogram(float* in_pos, unsigned int* binCounts,
 }
 
 __global__ void scan(unsigned int* binCounts, unsigned int* binPtrs) {
-    // INSERT KERNEL CODE HERE   
+    // INSERT KERNEL CODE HERE 
     __shared__ unsigned int temp[NUM_BINS];
     int t_idx = threadIdx.x;
     int offset = 1;
@@ -171,6 +171,7 @@ __global__ void scan(unsigned int* binCounts, unsigned int* binPtrs) {
     }
 
     if (t_idx == 0) { 
+        binPtrs[n] = temp[n-1];
         temp[2*blockDim.x-1] = 0;
     }
 
@@ -191,9 +192,6 @@ __global__ void scan(unsigned int* binCounts, unsigned int* binPtrs) {
     __syncthreads();
     binPtrs[2*t_idx] = temp[2*t_idx];  
     binPtrs[2*t_idx+1] = temp[2*t_idx+1];
-    if (t_idx == 511){
-        binPtrs[1024] = binPtrs[1023]+binCounts[1023];
-    }
 }
 
 __global__ void sort(float* in_val, float* in_pos, float* in_val_sorted,
@@ -257,10 +255,9 @@ void gpu_preprocess(float* in_val, float* in_pos, float* in_val_sorted,
     // Scan the histogram to get the bin pointers
     if(NUM_BINS != 1024) FATAL("NUM_BINS must be 1024. Do not change.");
     scan <<< 1 , numThreadsPerBlock >>> (binCounts, binPtrs);
-
+    
     // Sort the inputs into the bins
     sort <<< 30 , numThreadsPerBlock >>> (in_val, in_pos, in_val_sorted,
         in_pos_sorted, grid_size, num_in, binCounts, binPtrs);
-
 }
 

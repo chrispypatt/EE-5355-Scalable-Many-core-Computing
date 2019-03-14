@@ -7,6 +7,77 @@ Try running all four implementations using varying input combinations. Use at le
 ANSWER:
 
 
+DEFAULT (GRID: 20,000, INPUT: 60,000): 
+	mode 1:
+		Launching kernel (CPU normal version)...2.640149 s
+	mode 2:
+		Launching kernel (GPU normal version)...0.015612 s
+	mode 3:
+		Launching kernel (GPU with cutoff)...0.015683 s
+	mode 4:
+		Preprocessing data on the CPU...0.001912 s
+		Launching kernel (GPU with input binning and cutoff)...0.008004 s
+	mode 5:
+		Preprocessing data on the GPU...0.000096 s
+		Launching kernel (GPU with input binning and cutoff)...0.007960 s
 
+BOTH LOW (GRID: 1,000, INPUT: 1,000):
+	mode 1:
+		Launching kernel (CPU normal version)...0.002205 s
+	mode 2:
+		Launching kernel (GPU normal version)...0.000328 s
+	mode 3:
+		Launching kernel (GPU with cutoff)...0.000474 s
+	mode 4:
+		Preprocessing data on the CPU...0.000041 s
+		Launching kernel (GPU with input binning and cutoff)...0.000832 s
+	mode 5:
+		Preprocessing data on the GPU...0.000096 s
+		Launching kernel (GPU with input binning and cutoff)...0.000782 s
 
+BOTH HIGH (GRID: 100,000, INPUT: 100,000): 
+	mode 1:
+		Launching kernel (CPU normal version)...22.025356 s
+	mode 2:
+		Launching kernel (GPU normal version)...0.190184 s
+	mode 3:
+		Launching kernel (GPU with cutoff)...0.100381 s
+	mode 4:
+		Preprocessing data on the CPU...0.003199 s
+		Launching kernel (GPU with input binning and cutoff)...0.009930 s
+	mode 5:
+		Preprocessing data on the GPU...0.000109 s
+		Launching kernel (GPU with input binning and cutoff)...0.009834 s
 
+GRID LOW INPUT HIGH (GRID: 1,000, INPUT: 100,000):
+	mode 1:
+		Launching kernel (CPU normal version)...0.220005 s
+	mode 2:
+		Launching kernel (GPU normal version)...0.024790 s
+	mode 3:
+		Launching kernel (GPU with cutoff)...0.040484 s
+	mode 4:
+		Preprocessing data on the CPU...0.003140 s
+		Launching kernel (GPU with input binning and cutoff)...0.041257 s
+	mode 5: 
+		Preprocessing data on the GPU...0.000134 s
+		Launching kernel (GPU with input binning and cutoff)...0.041196 s
+
+GRID HIGH INPUT LOW (GRID: 100,000, INPUT: 1,000):
+	mode 1:
+		Launching kernel (CPU normal version)...0.220281 s
+	mode 2:
+		Launching kernel (GPU normal version)...0.001431 s
+	mode 3:
+		Launching kernel (GPU with cutoff)...0.001076 s
+	mode 4:
+		Preprocessing data on the CPU...0.000075 s
+		Launching kernel (GPU with input binning and cutoff)...0.002534 s
+	mode 5:
+		Preprocessing data on the GPU...0.000079 s
+		Launching kernel (GPU with input binning and cutoff)...0.002620 s
+
+*One thing to note, when running my code for GRID=100,000, INPUT 1,000, the 
+verification process would say the test failed although the reference and computed 
+values matched for mode 4 and 5:
+	e.g. Verifying results...TEST FAILED at output index 49031, reference = 0.000050, computed = 0.000050
