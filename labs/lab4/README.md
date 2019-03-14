@@ -1,5 +1,5 @@
 # Lab 4: Input Binning
-The purpose of this lab is to understand input binning and its impact on per- formance in the context of a simple computation example. The example is composed of a 1-dimensional grid of discrete points and an array of elements each having a non-discrete value and a non-discrete position in the grid, as shown in the following figure.
+The purpose of this lab is to understand input binning and its impact on performance in the context of a simple computation example. The example is composed of a 1-dimensional grid of discrete points and an array of elements each having a non-discrete value and a non-discrete position in the grid, as shown in the following figure.
 
 ![1D input binning figure](binning.png)
 
