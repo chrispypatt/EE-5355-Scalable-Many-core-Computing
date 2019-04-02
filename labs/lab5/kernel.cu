@@ -149,30 +149,20 @@ __global__ void gpu_warp_queuing_kernel(unsigned int *nodePtrs,
   unsigned int offset = threadIdx.x/WARP_SIZE;
   if (offset == 0){//only first thread in a warp 
     w_start[wqueue_idx] = atomicAdd(&b_numNextLevelNodes, w_numNextLevelNodes[wqueue_idx]);
-    for (unsigned int i = 0; i < w_numNextLevelNodes[wqueue_idx]; i++){
-      unsigned int bq_idx = w_start[wqueue_idx] + i;
-      if (bq_idx < BQ_CAPACITY){//make sure there is room in block queue
-        b_nextLevelNodes[bq_idx] = w_nextLevelNodes[i][wqueue_idx];
-      }else{//if not, put right into global queue
-        b_numNextLevelNodes = BQ_CAPACITY;//s_numNextLevelNodes >= BQ_CAPACITY so reset to BQ_CAPACITY
-        unsigned int gq_idx = atomicAdd(numNextLevelNodes,1);
-        nextLevelNodes[gq_idx] = w_nextLevelNodes[i][wqueue_idx];
-      }
-    }
   }
   __syncthreads();
   //let each thread in the warp move elements from warp queue to block queue in coalesced fashion
-  // for (unsigned int i = offset; i < w_numNextLevelNodes[wqueue_idx]; i += WARP_SIZE){
-  //   unsigned int bq_idx = w_start[wqueue_idx] + i;
-  //   if (bq_idx < BQ_CAPACITY){//make sure there is room in block queue
-  //     b_nextLevelNodes[bq_idx] = w_nextLevelNodes[i][wqueue_idx];
-  //   }else{//if not, put right into global queue
-  //     b_numNextLevelNodes = BQ_CAPACITY;//s_numNextLevelNodes >= BQ_CAPACITY so reset to BQ_CAPACITY
-  //     unsigned int gq_idx = atomicAdd(numNextLevelNodes,1);
-  //     nextLevelNodes[gq_idx] = w_nextLevelNodes[i][wqueue_idx];
-  //   }
-  // }
-  // __syncthreads();
+  for (unsigned int i = offset; i < w_numNextLevelNodes[wqueue_idx]; i += NUM_WARPS){
+    unsigned int bq_idx = w_start[wqueue_idx] + i;
+    if (bq_idx < BQ_CAPACITY){//make sure there is room in block queue
+      b_nextLevelNodes[bq_idx] = w_nextLevelNodes[i][wqueue_idx];
+    }else{//if not, put right into global queue
+      b_numNextLevelNodes = BQ_CAPACITY;//s_numNextLevelNodes >= BQ_CAPACITY so reset to BQ_CAPACITY
+      unsigned int gq_idx = atomicAdd(numNextLevelNodes,1);
+      nextLevelNodes[gq_idx] = w_nextLevelNodes[i][wqueue_idx];
+    }
+  }
+  __syncthreads();
 
 
   // //update global numNextLevelNodes for other blocks to determine their start 
