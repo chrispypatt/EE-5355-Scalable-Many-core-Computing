@@ -1,12 +1,80 @@
-
 QUESTION:
 
 Try running all four implementations using varying input sizes. Compare the performance and scalability of each implementation. Explain why you think each implementation performs better or worse than the one before it.
 
 
 ANSWER:
+My test results can be found below the next few paragraphs. 
 
+We can see that the sequential, mode 1, always has worse performance than all the GPU versions
+at the input sizes I tested. As for the other modes, 2-4, there is little to no performance increase
+as we add more privatization. To be more specific, at smaller input and neighbor sizes (e.g. 200k nodes, 10 neighbors)
+mode 4 performs better than mode 3 which performs better than mode 2. The performance increase is negligible 
+(about 5-10 microseconds) but as input size and max neighbors increase, this relationship changes. 
 
+For example: 
+at 1 million input nodes, almost every number of max neighbors has mode 2, global queuing performing better than
+both mode 3 and mode 4. This is because there is a tradeoff between overhead of privatization and performance 
+gain from the privatization. At very large input sizes, the tradeoff is not beneficial because after the overhead of 
+setting up warp level and or block level queues, the queues will saturate and we will then have to revert back 
+putting new unvisited nodes into the global queue, incurring the global contention as well as the overhead to 
+merge back the warp and block queues. 
 
+Thus, the conclusion is that the tradeoff between privatization optimizations and overhead to implement these optimizations 
+causes minimal performance gain. Specifically at small input sizes, there will be small but negligible performance gain. 
+When input size is large, the overhead of privatization actually causes performance to degrade because many of the next level 
+nodes will overflow the shared memory queues and have to be written directly to the global queue, causing contention on the 
+global queues once again plus the added cost of merging warp queues and or block queues into the global memory. 
 
+One optimization attempted that could have provided a small performance gain for the warp queue implementation was 
+eliminating atomic adds when adding a node to the warp lane queues. After further investigation, it was found that 
+more than one warp on the Nvidia 1080 GPUS execute at a time, thus there is still contention when adding nodes to 
+these queues. 
 
+Test 1: 200,000 Nodes, 10 max neighbors per Nodes
+	mode 1: 0.004111 s
+	mode 2: 0.000181 s
+	mode 3: 0.000175 s
+	mode 4: 0.000171 s
+
+Test 2: 200,000 Nodes, 50 max neighbors per Nodes
+	mode 1: 0.010072 s
+	mode 2: 0.000701 s
+	mode 3: 0.000698 s
+	mode 4: 0.000695 s
+
+Test 3: 500,000 Nodes, 10 max neighbors per Nodes
+	mode 1: 0.014837 s
+	mode 2: 0.000568 s
+	mode 3: 0.000564 s
+	mode 4: 0.000565 s
+
+Test 4: 500,000 Nodes, 50 max neighbors per Nodes
+	mode 1: 0.029455 s
+	mode 2: 0.002513 s
+	mode 3: 0.002537 s
+	mode 4: 0.002535 s
+
+Test 5: 1,000,000 Nodes, 10 max neighbors per Nodes
+	mode 1: 0.029760 s
+	mode 2: 0.001305 s
+	mode 3: 0.001308 s
+	mode 4: 0.001302 s
+
+Test 6: 1,000,000 Nodes, 50 max neighbors per Nodes
+	mode 1: 0.064350 s
+	mode 2: 0.005965 s
+	mode 3: 0.005973 s
+	mode 4: 0.005983 s
+
+Test 7: 10,000,000 Nodes, 10 max neighbors per Nodes
+	mode 1: 0.358576 s
+	mode 2: 0.015277 s
+	mode 3: 0.015412 s
+	mode 4: 0.015328 s
+
+Test 7: 10,000,000 Nodes, 10 max neighbors per Nodes
+	mode 1: 0.358576 s
+	mode 2: 0.015277 s
+	mode 3: 0.015412 s
+	mode 4: 0.015328 s
