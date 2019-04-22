@@ -1,0 +1,3 @@
+[submodule "RAPIDS-Groupby"]
+	path = RAPIDS-Groupby
+	url = https://github.com/chrispypatt/RAPIDS-Groupby.git
