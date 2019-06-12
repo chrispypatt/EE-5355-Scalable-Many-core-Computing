@@ -9,4 +9,4 @@
 - [x] Lab 5 - BFS Queueing
 
 -Final Project
-- [ ] TBD
+- [x] Hashed GroupBy
